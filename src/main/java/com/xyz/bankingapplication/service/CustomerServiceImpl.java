@@ -4,11 +4,15 @@ import com.xyz.bankingapplication.dto.LogonRequest;
 import com.xyz.bankingapplication.dto.RegistrationRequest;
 import com.xyz.bankingapplication.entity.Customer;
 import com.xyz.bankingapplication.repository.CustomerRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
 
@@ -41,5 +45,29 @@ public class CustomerServiceImpl implements CustomerService {
             return "Login Successful";
         }
         return "UserName or Password is incorrect/not existing";
+    }
+
+    @Override
+    public String uploadImage(MultipartFile idDocument, String username) throws IOException {
+        Optional<Customer> existingCustomer = customerRepository.findByUsername(username);
+
+        if(existingCustomer.isPresent()){
+            Customer customer = existingCustomer.get();
+            byte[] document = idDocument.getBytes();
+            customer.setIdDocument(document);
+            customerRepository.save(customer);
+            return "Document uploaded successfully";
+        }
+        log.info("username doesn't exist");
+        return "Username doesn't exist";
+    }
+
+    public byte[] downloadImage(String username) {
+        Optional<Customer> existingCustomer = customerRepository.findByUsername(username);
+        if(existingCustomer.isPresent()){
+            return existingCustomer.get().getIdDocument();
+        }
+        log.info("username doesn't exist");
+        return null;
     }
 }

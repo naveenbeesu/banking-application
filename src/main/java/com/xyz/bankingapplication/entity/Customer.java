@@ -1,9 +1,6 @@
 package com.xyz.bankingapplication.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,4 +24,7 @@ public class Customer {
     String password;
     LocalDateTime registrationDate;
     LocalDateTime lastLoginTime;
+    @Lob
+    @Column(name = "id_document",length = 1000)
+    private byte[] idDocument;
 }
