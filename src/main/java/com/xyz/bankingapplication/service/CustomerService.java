@@ -2,6 +2,7 @@ package com.xyz.bankingapplication.service;
 
 import com.xyz.bankingapplication.dto.LogonRequest;
 import com.xyz.bankingapplication.dto.RegistrationRequest;
+import com.xyz.bankingapplication.dto.RegistrationResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,7 +10,7 @@ import java.io.IOException;
 
 @Service
 public interface CustomerService {
-    String register(RegistrationRequest request);
+    RegistrationResponse register(RegistrationRequest request);
 
     String login(LogonRequest request);
 

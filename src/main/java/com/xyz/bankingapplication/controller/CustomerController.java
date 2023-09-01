@@ -2,6 +2,7 @@ package com.xyz.bankingapplication.controller;
 
 import com.xyz.bankingapplication.dto.LogonRequest;
 import com.xyz.bankingapplication.dto.RegistrationRequest;
+import com.xyz.bankingapplication.dto.RegistrationResponse;
 import com.xyz.bankingapplication.service.CustomerService;
 import com.xyz.bankingapplication.service.CustomerServiceImpl;
 import com.xyz.bankingapplication.validations.ValidDocument;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,9 +33,10 @@ public class CustomerController {
 
 
     @PostMapping("register")
-    public ResponseEntity<String> register(@RequestPart RegistrationRequest request, @RequestPart("idDocument") MultipartFile idDocument) throws IOException {
-        String response = customerService.register(request);
-        response = customerService.uploadImage(idDocument, "nbeesu");
+    public ResponseEntity<RegistrationResponse> register(@RequestPart RegistrationRequest request, @RequestPart("idDocument") MultipartFile idDocument) throws IOException {
+        validationService.validateRequest(request);
+        RegistrationResponse response = customerService.register(request);
+        //response = customerService.uploadImage(idDocument, "nbeesu");
         return ResponseEntity.ok(response);
     }
 
@@ -44,7 +47,7 @@ public class CustomerController {
     }
 
     @PostMapping("upload/{username}")
-    public ResponseEntity<String> uploadImage(@PathVariable String username, @RequestParam("idDocument") MultipartFile idDocument) throws IOException {
+    public ResponseEntity<String> uploadImage(@NonNull @PathVariable String username, @RequestParam("idDocument") MultipartFile idDocument) throws IOException {
         log.info("username is "+ username);
         validationService.validateDocument(idDocument);
         String response = customerService.uploadImage(idDocument, username);

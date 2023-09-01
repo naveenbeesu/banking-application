@@ -18,7 +18,9 @@ public class Customer {
     String lastName;
     String username;
     LocalDate dateOfBirth;
-    String address;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id")
+    Address address;
     String mobileNumber;
     String nationalId;
     String password;

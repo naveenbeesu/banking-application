@@ -2,8 +2,12 @@ package com.xyz.bankingapplication.service;
 
 import com.xyz.bankingapplication.dto.LogonRequest;
 import com.xyz.bankingapplication.dto.RegistrationRequest;
+import com.xyz.bankingapplication.dto.RegistrationResponse;
+import com.xyz.bankingapplication.entity.Address;
 import com.xyz.bankingapplication.entity.Customer;
+import com.xyz.bankingapplication.repository.AddressRepository;
 import com.xyz.bankingapplication.repository.CustomerRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,28 +19,61 @@ import java.util.Optional;
 @Slf4j
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
+    private final AddressRepository addressRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
+    public CustomerServiceImpl(CustomerRepository customerRepository, AddressRepository addressRepository) {
         this.customerRepository = customerRepository;
+        this.addressRepository = addressRepository;
     }
 
-    public String register(RegistrationRequest request){
+    @Transactional
+    public RegistrationResponse register(RegistrationRequest request){
         Optional<Customer> existingCustomer = customerRepository.findByUsername(request.getUsername());
+        RegistrationResponse response = new RegistrationResponse();
         if(existingCustomer.isPresent()){
-            return "username is already existing";
+            response.setStatus("username is already existing");
         }
+
+        Address address = new Address();
+        insertAddress(request, address);
+
         Customer customer = new Customer();
+        Customer customerCreated = insertCustomerDetails(request, customer, address);
+
+        if(customerCreated==null){
+            response.setStatus("Registration Failed");
+        } else {
+            response.setStatus("Registration is Successful");
+            response.setUsername(customerCreated.getUsername());
+            response.setPassword(customerCreated.getPassword());
+        }
+        return response;
+    }
+
+    private Customer insertCustomerDetails(RegistrationRequest request, Customer customer, Address address) {
         customer.setUsername(request.getUsername());
         customer.setFirstName(request.getFirstName());
         customer.setLastName(request.getLastName());
-        customer.setAddress(request.getAddress());
+        customer.setAddress(address);
         customer.setPassword(PasswordGenerator.generateDefaultPassword());
         customer.setDateOfBirth(request.getDateOfBirth());
         customer.setNationalId(request.getNationalId());
         customer.setRegistrationDate(request.getRegistrationDate());
         customer.setMobileNumber(request.getMobileNumber());
-        customerRepository.save(customer);
-        return "Registration Successful";
+
+        Customer customerCreated = customerRepository.save(customer);
+        return customerCreated;
+    }
+
+    private void insertAddress(RegistrationRequest request, Address address) {
+        address.setStreet(request.getStreet());
+        address.setCity(request.getCity());
+        address.setState(request.getState());
+        address.setPostalCode(request.getPostalCode());
+        address.setCountry(request.getCountry());
+
+        //save new address to database
+        addressRepository.save(address);
     }
 
     public String login(LogonRequest request) {
