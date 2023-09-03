@@ -14,7 +14,6 @@ import static com.xyz.bankingapplication.utils.Constants.*;
 @Service
 public class ValidationService {
 
-
     private final AddressProperties addressProperties;
 
     public ValidationService(AddressProperties addressProperties) {

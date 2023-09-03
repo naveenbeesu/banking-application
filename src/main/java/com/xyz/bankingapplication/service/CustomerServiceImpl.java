@@ -32,6 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
         RegistrationResponse response = new RegistrationResponse();
         if(existingCustomer.isPresent()){
             response.setStatus("username is already existing");
+            return response;
         }
 
         Address address = new Address();
@@ -61,8 +62,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setRegistrationDate(request.getRegistrationDate());
         customer.setMobileNumber(request.getMobileNumber());
 
-        Customer customerCreated = customerRepository.save(customer);
-        return customerCreated;
+        return customerRepository.save(customer);
     }
 
     private void insertAddress(RegistrationRequest request, Address address) {
@@ -76,7 +76,7 @@ public class CustomerServiceImpl implements CustomerService {
         addressRepository.save(address);
     }
 
-    public String login(LogonRequest request) {
+    public String logon(LogonRequest request) {
         Optional<Customer> existingCustomer = customerRepository.findByUsernameAndPassword(request.getUsername(), request.getPassword());
         if(existingCustomer.isPresent()){
             return "Login Successful";

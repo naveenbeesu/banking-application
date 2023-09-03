@@ -12,7 +12,7 @@ import java.io.IOException;
 public interface CustomerService {
     RegistrationResponse register(RegistrationRequest request);
 
-    String login(LogonRequest request);
+    String logon(LogonRequest request);
 
     String uploadImage(MultipartFile image, String username) throws IOException;
 

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Configuration
-@ConfigurationProperties(prefix="countries")
+@ConfigurationProperties(prefix="address")
 @Getter
 @Setter
 @Component
