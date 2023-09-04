@@ -13,4 +13,5 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountProperties {
     public String bankCode;
+    public String currency;
 }

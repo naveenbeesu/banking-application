@@ -1,4 +1,4 @@
-package com.xyz.bankingapi.service;
+package com.xyz.bankingapi.service.customer;
 
 import com.xyz.bankingapi.dto.LogonRequest;
 import com.xyz.bankingapi.dto.RegistrationRequest;
@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Optional;
+
+import static com.xyz.bankingapi.utils.Constants.*;
 
 @Service
 @Slf4j
@@ -35,7 +37,7 @@ public class CustomerServiceImpl implements CustomerService {
         Optional<Customer> existingCustomer = customerRepository.findByUsername(request.getUsername());
         RegistrationResponse response = new RegistrationResponse();
         if(existingCustomer.isPresent()){
-            response.setStatus("username is already existing");
+            response.setStatus(USERNAME_EXISTING);
             return response;
         }
 
@@ -46,12 +48,12 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customerCreated = insertCustomerDetails(request, customer, address);
 
         if(customerCreated==null){
-            response.setStatus("Registration Failed");
+            response.setStatus(REGISTRATION_FAILED);
         } else {
             if(!accountService.createAccount(customerCreated)){
-                response.setStatus("Account already exists with customerId");
+                response.setStatus(ACCOUNT_EXISTING);
             } else {
-                response.setStatus("Registration is Successful");
+                response.setStatus(REGISTRATION_SUCCESSFUL);
                 response.setUsername(customerCreated.getUsername());
                 response.setPassword(customerCreated.getPassword());
             }
@@ -87,9 +89,9 @@ public class CustomerServiceImpl implements CustomerService {
     public String logon(LogonRequest request) {
         Optional<Customer> existingCustomer = customerRepository.findByUsernameAndPassword(request.getUsername(), request.getPassword());
         if(existingCustomer.isPresent()){
-            return "Login Successful";
+            return LOGIN_SUCCESSFUL;
         }
-        return "UserName or Password is incorrect/not existing";
+        return LOGIN_FAILED;
     }
 
     @Override
@@ -101,10 +103,10 @@ public class CustomerServiceImpl implements CustomerService {
             byte[] document = idDocument.getBytes();
             customer.setIdDocument(document);
             customerRepository.save(customer);
-            return "Document uploaded successfully";
+            return DOCUMENT_UPLOAD_SUCCESS;
         }
-        log.info("username doesn't exist");
-        return "Username doesn't exist";
+        log.info(USERNAME_NOT_FOUND);
+        return USERNAME_NOT_FOUND;
     }
 
     public byte[] downloadImage(String username) {
@@ -112,7 +114,7 @@ public class CustomerServiceImpl implements CustomerService {
         if(existingCustomer.isPresent()){
             return existingCustomer.get().getIdDocument();
         }
-        log.info("username doesn't exist");
+        log.info(USERNAME_NOT_FOUND);
         return null;
     }
 }

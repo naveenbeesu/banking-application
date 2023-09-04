@@ -3,11 +3,12 @@ package com.xyz.bankingapi.service.account;
 import com.xyz.bankingapi.dto.AccountDetails;
 import com.xyz.bankingapi.dto.AccountType;
 import com.xyz.bankingapi.dto.TransferRequest;
+import com.xyz.bankingapi.dto.TransferResponse;
 import com.xyz.bankingapi.entity.Account;
 import com.xyz.bankingapi.entity.Customer;
 import com.xyz.bankingapi.exceptions.AccountNotFoundException;
 import com.xyz.bankingapi.repository.AccountRepository;
-import com.xyz.bankingapi.repository.CustomerRepository;
+import com.xyz.bankingapi.utils.AccountProperties;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import static com.xyz.bankingapi.utils.Constants.*;
+
 @Service
 @Slf4j
 public class AccountServiceImpl implements AccountService {
@@ -23,38 +26,48 @@ public class AccountServiceImpl implements AccountService {
 
     private final IbanService ibanService;
 
-    public AccountServiceImpl(AccountRepository accountRepository, IbanServiceImpl ibanService) {
+    private final AccountProperties accountProperties;
+
+    public AccountServiceImpl(AccountRepository accountRepository, IbanServiceImpl ibanService, AccountProperties accountProperties) {
         this.accountRepository = accountRepository;
         this.ibanService = ibanService;
+        this.accountProperties = accountProperties;
     }
 
     public AccountDetails getAccountDetails(String iban) {
+        isValidIban(iban);
         AccountDetails accountDetails = new AccountDetails();
         log.info("Before calling accountRepository to find accountId");
         Optional<Account> accountExisting = accountRepository.findByIban(iban);
         if (accountExisting.isPresent()) {
             Account account = accountExisting.get();
-            accountDetails.setAccountNumber(account.getAccountNumber());
-            accountDetails.setIban(account.getIban());
-            accountDetails.setBalance(account.getBalance());
-            accountDetails.setAccountType(account.getAccountType());
+            getAccountDetails(accountDetails, account);
         }
         log.info("after calling accountRepository to find accountId");
         return accountDetails;
     }
 
+    private static void getAccountDetails(AccountDetails accountDetails, Account account) {
+        accountDetails.setAccountNumber(account.getAccountNumber());
+        accountDetails.setIban(account.getIban());
+        accountDetails.setBalance(account.getBalance());
+        accountDetails.setAccountType(account.getAccountType());
+    }
+
     @Transactional
-    public boolean transfer(TransferRequest request) {
+    public TransferResponse transfer(TransferRequest request) {
         String senderIban = request.getSenderIban();
         String receiverIban = request.getReceiverIban();
         double amount = request.getAmount();
+        TransferResponse response = new TransferResponse();
 
-        if (!isValidIban(senderIban) || !isValidIban(receiverIban) || !ibanService.areSameBank(senderIban, receiverIban)) {
-            return false;
+        if (!isValidIban(senderIban) || !isValidIban(receiverIban) || !ibanService.areSameBank(senderIban, receiverIban, accountProperties.getBankCode())) {
+            response.setStatus(TRANSFER_FAILURE_INVALID_INPUTS);
+        } else {
+            //transfers amount
+            transferAmount(senderIban, receiverIban, amount, response);
         }
-
-        // Check and deduct amount from sender Account
-        return transferAmount(senderIban, receiverIban, amount);
+        return response;
     }
 
     private boolean isValidIban(String iban) {
@@ -62,26 +75,35 @@ public class AccountServiceImpl implements AccountService {
         return true;
     }
 
-    private boolean transferAmount(String senderIban, String receiverIban, double amount) {
+    private void transferAmount(String senderIban, String receiverIban, double amount, TransferResponse response) {
         try {
             Account senderAccount = accountRepository.findByIban(senderIban)
-                    .orElseThrow(() -> new AccountNotFoundException("iban", "Sender Account not found"));
+                    .orElseThrow(() -> new AccountNotFoundException("senderIban", ACCOUNT_NOT_FOUND));
 
             if (senderAccount.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
-                log.info("No sufficient funds available");
-                return false;
+                log.info(NO_SUFFICIENT_FUNDS);
+                response.setStatus(NO_SUFFICIENT_FUNDS);
+            } else {
+                senderAccount.setBalance(senderAccount.getBalance().subtract(BigDecimal.valueOf(amount)));
+
+                Account receiverAccount = accountRepository.findByIban(receiverIban)
+                        .orElseThrow(() -> new AccountNotFoundException("receiverIban", ACCOUNT_NOT_FOUND));
+                receiverAccount.setBalance(receiverAccount.getBalance().add(BigDecimal.valueOf(amount)));
+
+                Account senderAccountAfterDeduction = accountRepository.save(senderAccount);
+                accountRepository.save(receiverAccount);
+
+                AccountDetails accountDetails = new AccountDetails();
+                getAccountDetails(accountDetails, senderAccountAfterDeduction);
+                response.setStatus(TRANSFER_SUCCESS);
+                response.setOverview(accountDetails);
             }
-            senderAccount.setBalance(senderAccount.getBalance().subtract(BigDecimal.valueOf(amount)));
-
-            Account receiverAccount = accountRepository.findByIban(receiverIban)
-                    .orElseThrow(() -> new AccountNotFoundException("iban", "Receiver Account not found"));
-            receiverAccount.setBalance(receiverAccount.getBalance().add(BigDecimal.valueOf(amount)));
-
-            accountRepository.save(senderAccount);
-            accountRepository.save(receiverAccount);
-            return true; // Amount deducted successfully
-        } catch (AccountNotFoundException | OptimisticLockingFailureException ex) {
-            return false;
+        } catch (AccountNotFoundException ex) {
+            log.error(ACCOUNT_NOT_FOUND + ex.getMessage());
+            throw new AccountNotFoundException("iban", ACCOUNT_NOT_FOUND);
+        } catch(OptimisticLockingFailureException ex){
+            log.error(CONCURRENT_TRANSACTION_FAILURE + ex.getMessage());
+            response.setStatus(CONCURRENT_TRANSACTION_FAILURE);
         }
     }
 
@@ -89,7 +111,7 @@ public class AccountServiceImpl implements AccountService {
     public boolean createAccount(Customer customer) {
 
         String accountNumber = AccountNumberGenerator.generateAccountNumber();
-        String iban = ibanService.generateIban(customer.getAddress().getCountry(), accountNumber);
+        String iban = ibanService.generateIban(customer.getAddress().getCountry(), accountNumber, accountProperties.getBankCode());
 
         log.info("Before calling accountRepository to check existing customer");
         Optional<Account> accountExisting = accountRepository.findByCustomer(customer);
@@ -103,7 +125,7 @@ public class AccountServiceImpl implements AccountService {
         account.setIban(iban);
         account.setCustomer(customer);
         account.setBalance(BigDecimal.ZERO);
-        account.setCurrency("EUR");
+        account.setCurrency(accountProperties.getCurrency());
         account.setAccountType(AccountType.SAVINGS.toString());
         accountRepository.save(account);
 

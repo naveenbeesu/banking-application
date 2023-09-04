@@ -1,29 +1,23 @@
 package com.xyz.bankingapi.service.account;
 
 import com.xyz.bankingapi.exceptions.InvalidIbanException;
-import com.xyz.bankingapi.utils.AccountProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.iban4j.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import static com.xyz.bankingapi.utils.Constants.INVALID_IBAN;
 
 @Service
 @Slf4j
 public class IbanServiceImpl implements IbanService {
 
-    @Qualifier("accountProperties")
-    @Autowired
-    AccountProperties accountProperties;
-
-
-    public String generateIban(String countryCode, String accountNumber) {
+    public String generateIban(String countryCode, String accountNumber, String bankCode) {
         log.info("Before generating Iban number");
         Iban iban = new Iban.Builder()
-                            .countryCode(CountryCode.valueOf(countryCode))
-                            .bankCode(accountProperties.getBankCode())
-                            .accountNumber(accountNumber)
-                            .build();
+                .countryCode(CountryCode.valueOf(countryCode))
+                .bankCode(bankCode)
+                .accountNumber(accountNumber)
+                .build();
         log.info("after generating Iban number");
         return iban.toString();
     }
@@ -38,18 +32,19 @@ public class IbanServiceImpl implements IbanService {
                  InvalidCheckDigitException |
                  UnsupportedCountryException e) {
             // invalid
-            log.error("Invalid iban"+ e.getMessage());
-            throw new InvalidIbanException("iban", "Invalid Iban");
+            log.error("Invalid iban" + e.getMessage());
+            throw new InvalidIbanException("iban", INVALID_IBAN);
         }
     }
-    public boolean areSameBank(String senderIban, String receiverIban) {
+
+    public boolean areSameBank(String senderIban, String receiverIban, String bankCode) {
         try {
-            return IbanUtil.getBankCode(senderIban).equals(accountProperties.getBankCode()) || IbanUtil.getBankCode(receiverIban).equals(accountProperties.getBankCode());
+            return IbanUtil.getBankCode(senderIban).equals(bankCode) || IbanUtil.getBankCode(receiverIban).equals(bankCode);
         } catch (IbanFormatException |
                  InvalidCheckDigitException |
                  UnsupportedCountryException e) {
             // invalid
-            log.error("Invalid iban"+ e.getMessage());
+            log.error("Invalid iban" + e.getMessage());
             throw new InvalidIbanException("iban", "Invalid Iban");
         }
     }

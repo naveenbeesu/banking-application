@@ -1,4 +1,4 @@
-package com.xyz.bankingapi.service;
+package com.xyz.bankingapi.service.account;
 
 import org.springframework.stereotype.Service;
 

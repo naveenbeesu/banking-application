@@ -1,0 +1,223 @@
+{
+	"info": {
+		"_postman_id": "ebf1e593-fcca-4c1f-bde3-d81fa8e1333f",
+		"name": "Banking Application",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29191320"
+	},
+	"item": [
+		{
+			"name": "customer-service",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Naveen\",\r\n    \"lastName\": \"Beesu\",\r\n    \"username\": \"nbeesu123\",\r\n    \"street\": \"Eikenhorst\",\r\n    \"city\": \"Alphen\",\r\n    \"state\": \"South Holland\",   \r\n    \"postalCode\": \"2302\",\r\n    \"country\": \"NL\",\r\n    \"dateOfBirth\": \"1992-07-10\",\r\n    \"nationalId\": \"abcd-efg\",\r\n    \"mobileNumber\": \"910010023\",\r\n    \"otp\": \"751536\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n    \"username\": \"nkbeesu\",\r\n    \"password\": \"9d6lyWqv\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/logon",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"logon"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "uploadDocument",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "idDocument",
+									"type": "file",
+									"src": "/C:/Users/NBEESU/Documents/test/New folder/banking-application/src/test/resources/batman.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/upload/nbeesu",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"upload",
+								"nbeesu"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "downloadDocument",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n    \"username\": \"nbeesu\",\r\n    \"password\": \"Gh6IMawf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/download/nbeesu",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"download",
+								"nbeesu"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "generate-otp",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"senderIban\": \"NL92673060192\" \r\n    \"receiverIban\": \"NL86839241744\"\r\n    \"amount\": 100\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/generateOtp/910010023",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"generateOtp",
+								"910010023"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "account-service",
+			"item": [
+				{
+					"name": "overview",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/account/overview/NL08XYZB4333038629",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"account",
+								"overview",
+								"NL08XYZB4333038629"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "transfer",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"senderIban\": \"NL08XYZB4333038629\", \r\n    \"receiverIban\": \"NL70XYZB4104657415\",\r\n    \"amount\": 100\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/account/transfer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"account",
+								"transfer"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
