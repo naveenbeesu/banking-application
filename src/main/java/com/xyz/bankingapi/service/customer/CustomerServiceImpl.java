@@ -23,7 +23,6 @@ import static com.xyz.bankingapi.utils.Constants.*;
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final AddressRepository addressRepository;
-
     private final AccountServiceImpl accountService;
 
     public CustomerServiceImpl(CustomerRepository customerRepository, AddressRepository addressRepository, AccountServiceImpl accountService) {
@@ -36,6 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
     public RegistrationResponse register(RegistrationRequest request){
         Optional<Customer> existingCustomer = customerRepository.findByUsername(request.getUsername());
         RegistrationResponse response = new RegistrationResponse();
+        //checks if there is any existing customer
         if(existingCustomer.isPresent()){
             response.setStatus(USERNAME_EXISTING);
             return response;
@@ -45,18 +45,15 @@ public class CustomerServiceImpl implements CustomerService {
         insertAddress(request, address);
 
         Customer customer = new Customer();
+        //inserts customer details
         Customer customerCreated = insertCustomerDetails(request, customer, address);
-
-        if(customerCreated==null){
-            response.setStatus(REGISTRATION_FAILED);
+        //creates account for the customerCreated
+        if(!accountService.createAccount(customerCreated)){
+            response.setStatus(ACCOUNT_EXISTING);
         } else {
-            if(!accountService.createAccount(customerCreated)){
-                response.setStatus(ACCOUNT_EXISTING);
-            } else {
-                response.setStatus(REGISTRATION_SUCCESSFUL);
-                response.setUsername(customerCreated.getUsername());
-                response.setPassword(customerCreated.getPassword());
-            }
+            response.setStatus(REGISTRATION_SUCCESSFUL);
+            response.setUsername(customerCreated.getUsername());
+            response.setPassword(customerCreated.getPassword());
         }
         return response;
     }
@@ -72,7 +69,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setRegistrationDate(request.getRegistrationDate());
         customer.setMobileNumber(request.getMobileNumber());
 
-        return customerRepository.save(customer);
+        return customerRepository.save(customer);   //saves new customer
     }
 
     private void insertAddress(RegistrationRequest request, Address address) {
@@ -97,7 +94,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public String uploadImage(MultipartFile idDocument, String username) throws IOException {
         Optional<Customer> existingCustomer = customerRepository.findByUsername(username);
-
+        //checks if customer exists on given username and inserts the idDocument
         if(existingCustomer.isPresent()){
             Customer customer = existingCustomer.get();
             byte[] document = idDocument.getBytes();
@@ -111,6 +108,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     public byte[] downloadImage(String username) {
         Optional<Customer> existingCustomer = customerRepository.findByUsername(username);
+        //checks if the user found on username
         if(existingCustomer.isPresent()){
             return existingCustomer.get().getIdDocument();
         }

@@ -60,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
         String receiverIban = request.getReceiverIban();
         double amount = request.getAmount();
         TransferResponse response = new TransferResponse();
-
+        //validate iban details of sender and receiver
         if (!isValidIban(senderIban) || !isValidIban(receiverIban) || !ibanService.areSameBank(senderIban, receiverIban, accountProperties.getBankCode())) {
             response.setStatus(TRANSFER_FAILURE_INVALID_INPUTS);
         } else {
@@ -77,15 +77,16 @@ public class AccountServiceImpl implements AccountService {
 
     private void transferAmount(String senderIban, String receiverIban, double amount, TransferResponse response) {
         try {
+            //checks if sender account exists
             Account senderAccount = accountRepository.findByIban(senderIban)
                     .orElseThrow(() -> new AccountNotFoundException("senderIban", ACCOUNT_NOT_FOUND));
-
+            //checks for sufficient funds in sender account
             if (senderAccount.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
                 log.info(NO_SUFFICIENT_FUNDS);
                 response.setStatus(NO_SUFFICIENT_FUNDS);
             } else {
                 senderAccount.setBalance(senderAccount.getBalance().subtract(BigDecimal.valueOf(amount)));
-
+                //checks if receiver account exists
                 Account receiverAccount = accountRepository.findByIban(receiverIban)
                         .orElseThrow(() -> new AccountNotFoundException("receiverIban", ACCOUNT_NOT_FOUND));
                 receiverAccount.setBalance(receiverAccount.getBalance().add(BigDecimal.valueOf(amount)));
@@ -94,7 +95,7 @@ public class AccountServiceImpl implements AccountService {
                 accountRepository.save(receiverAccount);
 
                 AccountDetails accountDetails = new AccountDetails();
-                getAccountDetails(accountDetails, senderAccountAfterDeduction);
+                getAccountDetails(accountDetails, senderAccountAfterDeduction); //gets updated sender account details
                 response.setStatus(TRANSFER_SUCCESS);
                 response.setOverview(accountDetails);
             }
@@ -109,10 +110,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional
     public boolean createAccount(Customer customer) {
-
+        //generates accountNumber
         String accountNumber = AccountNumberGenerator.generateAccountNumber();
+        //generates iban
         String iban = ibanService.generateIban(customer.getAddress().getCountry(), accountNumber, accountProperties.getBankCode());
-
+        //checks if the already exists
         log.info("Before calling accountRepository to check existing customer");
         Optional<Account> accountExisting = accountRepository.findByCustomer(customer);
         if (accountExisting.isPresent()) {
