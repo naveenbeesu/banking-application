@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+import static com.xyz.bankingapi.utils.Constants.INCORRECT_OTP;
+
 @RestController
 @Slf4j
 public class CustomerController {
@@ -35,10 +37,13 @@ public class CustomerController {
 
     @PostMapping("register")
     public ResponseEntity<RegistrationResponse> register(@RequestBody RegistrationRequest request) {
+        //validates input request
         validationService.validateRequest(request);
         RegistrationResponse response = new RegistrationResponse();
+        //validates otp
         if (!otpService.validateOtp(request.getMobileNumber(), request.getOtp())) {
-            response.setStatus("Incorrect Otp");
+            log.info(INCORRECT_OTP);
+            response.setStatus(INCORRECT_OTP);
         } else {
             response = customerService.register(request);
         }
@@ -53,7 +58,6 @@ public class CustomerController {
 
     @PutMapping("upload/{username}")
     public ResponseEntity<String> uploadImage(@PathVariable String username, @RequestParam("idDocument") MultipartFile idDocument) throws IOException {
-        log.info("username is " + username);
         validationService.validateDocument(idDocument);
         String response = customerService.uploadImage(idDocument, username);
         return ResponseEntity.ok(response);

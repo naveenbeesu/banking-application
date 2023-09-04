@@ -27,5 +27,6 @@ public class Constants {
     public static final String LOGIN_FAILED = "UserName or Password is incorrect/not existing";
     public static final String DOCUMENT_UPLOAD_SUCCESS = "Document uploaded successfully";
     public static final String USERNAME_NOT_FOUND  = "Username doesn't exist";
+    public static final String INCORRECT_OTP = "Incorrect Otp";
 
 }
