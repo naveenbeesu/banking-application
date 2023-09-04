@@ -27,6 +27,6 @@ public class Customer {
     LocalDateTime registrationDate;
     LocalDateTime lastLoginTime;
     @Lob
-    @Column(name = "id_document",length = 1000)
+    @Column(name = "id_document", columnDefinition = "MEDIUMBLOB")
     private byte[] idDocument;
 }

@@ -3,16 +3,15 @@ package com.xyz.bankingapi.controller;
 import com.xyz.bankingapi.dto.LogonRequest;
 import com.xyz.bankingapi.dto.RegistrationRequest;
 import com.xyz.bankingapi.dto.RegistrationResponse;
-import com.xyz.bankingapi.service.CustomerService;
-import com.xyz.bankingapi.service.CustomerServiceImpl;
-import com.xyz.bankingapi.service.OtpService;
+import com.xyz.bankingapi.service.account.OtpService;
+import com.xyz.bankingapi.service.customer.CustomerService;
+import com.xyz.bankingapi.service.customer.CustomerServiceImpl;
 import com.xyz.bankingapi.validations.ValidationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +37,7 @@ public class CustomerController {
     public ResponseEntity<RegistrationResponse> register(@RequestBody RegistrationRequest request) {
         validationService.validateRequest(request);
         RegistrationResponse response = new RegistrationResponse();
-        if(!otpService.validateOtp(request.getMobileNumber(), request.getOtp())){
+        if (!otpService.validateOtp(request.getMobileNumber(), request.getOtp())) {
             response.setStatus("Incorrect Otp");
         } else {
             response = customerService.register(request);
@@ -46,14 +45,14 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("logon")
+    @GetMapping("logon")
     public ResponseEntity<String> logon(@RequestBody LogonRequest request) {
         String response = customerService.logon(request);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("upload/{username}")
-    public ResponseEntity<String> uploadImage(@NonNull @PathVariable String username, @RequestParam("idDocument") MultipartFile idDocument) throws IOException {
+    public ResponseEntity<String> uploadImage(@PathVariable String username, @RequestParam("idDocument") MultipartFile idDocument) throws IOException {
         log.info("username is " + username);
         validationService.validateDocument(idDocument);
         String response = customerService.uploadImage(idDocument, username);

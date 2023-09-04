@@ -114,7 +114,6 @@ public class ValidationServiceTest {
 
         assertNotNull(firstFile);
         validationService.validateDocument(firstFile);
-        doNothing();
     }
 
     @Test

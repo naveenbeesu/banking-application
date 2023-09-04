@@ -3,7 +3,8 @@ package com.xyz.bankingapi.controller;
 import com.xyz.bankingapi.dto.LogonRequest;
 import com.xyz.bankingapi.dto.RegistrationRequest;
 import com.xyz.bankingapi.dto.RegistrationResponse;
-import com.xyz.bankingapi.service.CustomerServiceImpl;
+import com.xyz.bankingapi.service.account.OtpService;
+import com.xyz.bankingapi.service.customer.CustomerServiceImpl;
 import com.xyz.bankingapi.validations.ValidationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -29,6 +30,9 @@ public class CustomerControllerTest {
     private CustomerController customerController;
     @Mock
     private CustomerServiceImpl customerService;
+
+    @Mock
+    private OtpService otpService;
 
     @Mock
     private ValidationService validationService;
@@ -73,6 +77,7 @@ public class CustomerControllerTest {
         mockResponse.setPassword("password");
 
         when(customerService.register(any())).thenReturn(mockResponse);
+        when(otpService.validateOtp(any(), any())).thenReturn(true);
 
         ResponseEntity<RegistrationResponse> actualResponseEntity = customerController.register(request);
 
@@ -94,6 +99,7 @@ public class CustomerControllerTest {
         mockResponse.setStatus("username is already existing");
 
         when(customerService.register(any())).thenReturn(mockResponse);
+        when(otpService.validateOtp(any(), any())).thenReturn(true);
 
         ResponseEntity<RegistrationResponse> actualResponseEntity = customerController.register(request);
 

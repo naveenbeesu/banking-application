@@ -1,4 +1,4 @@
-package com.xyz.bankingapi.service;
+package com.xyz.bankingapi.service.customer;
 
 import com.xyz.bankingapi.dto.LogonRequest;
 import com.xyz.bankingapi.dto.RegistrationRequest;

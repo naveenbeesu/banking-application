@@ -1,4 +1,4 @@
-package com.xyz.bankingapi.service;
+package com.xyz.bankingapi.service.customer;
 
 import com.xyz.bankingapi.dto.LogonRequest;
 import com.xyz.bankingapi.dto.RegistrationRequest;
@@ -7,6 +7,7 @@ import com.xyz.bankingapi.entity.Address;
 import com.xyz.bankingapi.entity.Customer;
 import com.xyz.bankingapi.repository.AddressRepository;
 import com.xyz.bankingapi.repository.CustomerRepository;
+import com.xyz.bankingapi.service.account.AccountServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -26,7 +27,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class BankingApplicationImplTest {
+public class CustomerServiceImplTest {
     @InjectMocks
     private CustomerServiceImpl customerService;
     @Mock
@@ -34,6 +35,9 @@ public class BankingApplicationImplTest {
 
     @Mock
     private AddressRepository addressRepository;
+
+    @Mock
+    private AccountServiceImpl accountService;
 
     @Test
     public void testRegisterSuccess() {
@@ -43,6 +47,7 @@ public class BankingApplicationImplTest {
         when(customerRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(customerRepository.save(any())).thenReturn(customerMock);
         when(addressRepository.save(any())).thenReturn(addressMock);
+        when(accountService.createAccount(any())).thenReturn(true);
 
         RegistrationResponse actualResponse = customerService.register(request);
 
