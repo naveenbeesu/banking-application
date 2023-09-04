@@ -121,3 +121,8 @@ Please refer this link -> https://www.baeldung.com/dockerizing-spring-boot-appli
 - To check docker images -> docker images
 - To check containers -> docker ps
 - Refer this link -> https://medium.com/thefreshwrites/the-way-of-dockerize-a-spring-boot-and-mysql-application-with-docker-compose-de2fc03c6a42
+
+##Test Coverage
+- Code coverage of 87%
+- Usually, above 95 - 99% code coverage is maintained based on SLA
+- Here, due to the time constraint, tried to cover most of the code especially main methods

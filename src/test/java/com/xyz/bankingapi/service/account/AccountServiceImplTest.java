@@ -29,7 +29,7 @@ import static com.xyz.bankingapi.utils.Constants.TRANSFER_SUCCESS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @EnableConfigurationProperties(value = AddressProperties.class)
@@ -39,7 +39,7 @@ public class AccountServiceImplTest {
     private AccountServiceImpl accountService;
     @Mock
     private AccountRepository accountRepository;
-    @Autowired
+    @Mock
     private IbanServiceImpl ibanService;
 
     @Autowired
@@ -51,16 +51,6 @@ public class AccountServiceImplTest {
         request.setReceiverIban("NL08XYZB4333038629");
         request.setAmount(100);
         return request;
-    }
-
-    private static AccountDetails getAccountDetails() {
-        AccountDetails accountOverview = new AccountDetails();
-        Account account = getAccount();
-        accountOverview.setAccountNumber(account.getAccountNumber());
-        accountOverview.setIban(account.getIban());
-        accountOverview.setBalance(account.getBalance());
-        accountOverview.setAccountType(account.getAccountType());
-        return accountOverview;
     }
 
     private static Account getAccount() {
@@ -121,6 +111,7 @@ public class AccountServiceImplTest {
     public void testAccountOverviewFailureForInvalidIban() {
         Account account = getAccount();
         when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(account));
+        doCallRealMethod().when(ibanService).validateIban(anyString());
 
         assertThrows(InvalidIbanException.class, () -> accountService.getAccountDetails("NL08XYZB433303862"));
     }
@@ -133,6 +124,8 @@ public class AccountServiceImplTest {
 
         when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(account));
         when(accountRepository.save(any())).thenReturn(senderAccountAfterSendingMoney);
+        doNothing().when(ibanService).validateIban(anyString());
+        when(ibanService.areSameBank(anyString(), anyString(), anyString())).thenReturn(true);
 
         TransferResponse actualResponse = accountService.transfer(request);
 
@@ -150,6 +143,8 @@ public class AccountServiceImplTest {
 
         when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(account));
         when(accountRepository.save(any())).thenReturn(senderAccountAfterSendingMoney);
+        doNothing().when(ibanService).validateIban(anyString());
+        when(ibanService.areSameBank(anyString(), anyString(), anyString())).thenReturn(true);
 
         TransferResponse actualResponse = accountService.transfer(request);
 
@@ -166,6 +161,7 @@ public class AccountServiceImplTest {
 
         when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(account));
         when(accountRepository.save(any())).thenReturn(senderAccountAfterSendingMoney);
+        doCallRealMethod().when(ibanService).validateIban(anyString());
 
         assertThrows(InvalidIbanException.class, () -> accountService.transfer(request));
     }
@@ -179,6 +175,7 @@ public class AccountServiceImplTest {
 
         when(accountRepository.findByCustomer(any())).thenReturn(Optional.empty());
         when(accountRepository.save(any())).thenReturn(account);
+        when(ibanService.generateIban(anyString(), anyString(), anyString())).thenReturn("NL08XYZB4333038629");
 
         boolean actualResponse = accountService.createAccount(customer);
 

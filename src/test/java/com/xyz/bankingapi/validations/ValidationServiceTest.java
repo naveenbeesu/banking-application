@@ -18,7 +18,6 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest
 @EnableConfigurationProperties(value = AddressProperties.class)
@@ -68,9 +67,7 @@ public class ValidationServiceTest {
         RegistrationRequest request = getRegistrationRequest();
         request.setDateOfBirth(LocalDate.of(1992, 7, 10));
         request.setCountry("Netherlands");
-
         validationService.validateRequest(request);
-        doNothing();
 
     }
 
